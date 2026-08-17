@@ -14,22 +14,8 @@
       </header>
 
       <main class="content-grid">
-        <section class="panel">
-          <div class="panel-header">
-            <h2>商品目录</h2>
-          </div>
-          <div id="catalog" class="catalog"></div>
-        </section>
-<div class="order-summary-box">
-              <div class="summary-row">
-                <span>已选件数</span>
-                <strong id="selected-count">0</strong>
-              </div>
-              <div class="summary-row total-row">
-                <span>总金额</span>
-                <strong id="total-price">$0</strong>
-              </div>
-            </div>
+        
+
         <aside class="panel">
           <div class="panel-header">
             <h2>报名信息</h2>
@@ -42,17 +28,22 @@
             </label>
 
             <label>
-              电话
-              <input type="tel" name="phone" placeholder="请输入手机号" required />
-            </label>
-
-            <label>
               备注
               <textarea name="notes" rows="4" placeholder="例如：送货时间、特别要求等"></textarea>
             </label>
 
-            
-
+            <button class="secondary-btn" id="open-catalog-btn" type="button">选择商品</button>
+<div class="order-summary-box">
+          <div class="summary-row">
+            <span>已选件数</span>
+            <strong id="selected-count">0</strong>
+          </div>
+          <div class="summary-row total-row">
+            <span>总金额</span>
+            <strong id="total-price">$0</strong>
+          </div>
+          <button id="edit-order-btn" class="secondary-btn summary-update-btn" type="button">更新订单</button>
+        </div>
             <button class="primary-btn" type="submit">提交报名</button>
           </form>
         </aside>
@@ -85,6 +76,20 @@
           <div id="report-orders" class="report-orders"></div>
         </div>
       </section>
+    </div>
+
+    <div id="catalog-modal" class="catalog-modal" role="dialog" aria-modal="true" aria-labelledby="catalog-modal-title">
+      <div class="catalog-modal-backdrop" id="catalog-modal-backdrop"></div>
+      <div class="catalog-modal-panel">
+        <div class="catalog-modal-header">
+          <h2 id="catalog-modal-title">商品目录</h2>
+          <div class="catalog-modal-actions">
+            <button id="save-order-btn" class="primary-btn save-btn hidden" type="button">确认更新</button>
+            <button id="close-catalog-btn" class="secondary-btn close-btn" type="button" aria-label="关闭商品目录">关闭</button>
+          </div>
+        </div>
+        <div id="catalog" class="catalog"></div>
+      </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>

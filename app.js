@@ -20,6 +20,11 @@ let catalog = [...DEFAULT_CATALOG];
 
 const selection = new Map();
 const catalogEl = document.querySelector('#catalog');
+const catalogModal = document.querySelector('#catalog-modal');
+const openCatalogButton = document.querySelector('#open-catalog-btn');
+const editOrderButton = document.querySelector('#edit-order-btn');
+const closeCatalogButton = document.querySelector('#close-catalog-btn');
+const saveOrderButton = document.querySelector('#save-order-btn');
 const signupForm = document.querySelector('#signup-form');
 const selectedCountEl = document.querySelector('#selected-count');
 const totalPriceEl = document.querySelector('#total-price');
@@ -31,6 +36,8 @@ const refreshButton = document.querySelector('#refresh-report');
 
 let db = null;
 let firebaseReady = false;
+let editingOrderId = null;
+let reportOrders = [];
 
 function formatCurrency(value) {
   return `$${Number(value || 0).toFixed(0)}`;
@@ -44,6 +51,47 @@ function showStatus(message, type = 'success') {
   status.className = `status-message ${type}`;
   status.textContent = message;
   signupForm.appendChild(status);
+}
+
+function openCatalogModal(orderId = null) {
+  if (!catalogModal) {
+    return;
+  }
+
+  editingOrderId = orderId;
+  if (orderId) {
+    const order = reportOrders.find((entry) => entry.id === orderId);
+    selection.clear();
+    if (order && Array.isArray(order.items)) {
+      order.items.forEach((item) => {
+        const quantity = Number(item.quantity || 0);
+        if (quantity > 0) {
+          selection.set(item.id, quantity);
+        }
+      });
+    }
+    if (saveOrderButton) {
+      saveOrderButton.classList.remove('hidden');
+    }
+  } else if (saveOrderButton) {
+    saveOrderButton.classList.add('hidden');
+  }
+
+  catalogModal.classList.add('is-open');
+  renderCatalog();
+  updateSelectionSummary();
+}
+
+function closeCatalogModal() {
+  if (catalogModal) {
+    catalogModal.classList.remove('is-open');
+  }
+
+  if (saveOrderButton) {
+    saveOrderButton.classList.add('hidden');
+  }
+
+  editingOrderId = null;
 }
 
 function updateSelectionSummary() {
@@ -100,6 +148,85 @@ function renderCatalog() {
     });
   });
 }
+
+if (openCatalogButton) {
+  openCatalogButton.addEventListener('click', () => openCatalogModal());
+}
+
+if (editOrderButton) {
+  editOrderButton.addEventListener('click', () => openCatalogModal());
+}
+
+if (closeCatalogButton) {
+  closeCatalogButton.addEventListener('click', () => {
+    if (editingOrderId) {
+      closeCatalogModal();
+      return;
+    }
+    closeCatalogModal();
+  });
+}
+
+if (saveOrderButton) {
+  saveOrderButton.addEventListener('click', async () => {
+    if (!editingOrderId || !firebaseReady || !db) {
+      closeCatalogModal();
+      return;
+    }
+
+    const items = [...selection.entries()].map(([id, quantity]) => {
+      const product = catalog.find((entry) => entry.id === id);
+      if (!product) {
+        return null;
+      }
+      return {
+        id: product.id,
+        name: product.name,
+        unit: product.unit,
+        price: product.price,
+        quantity
+      };
+    }).filter(Boolean);
+
+    if (!items.length) {
+      showStatus('至少选择一件商品。', 'error');
+      return;
+    }
+
+    const total = items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+
+    try {
+      await db.collection('tuangou').doc(editingOrderId).update({
+        items,
+        total,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      const report = await fetchReport();
+      renderReport(report);
+      selection.clear();
+      closeCatalogModal();
+      showStatus('订单已更新。', 'success');
+    } catch (error) {
+      console.error(error);
+      showStatus('更新失败，请稍后再试。', 'error');
+    }
+  });
+}
+
+if (catalogModal) {
+  catalogModal.addEventListener('click', (event) => {
+    if (event.target === catalogModal) {
+      closeCatalogModal();
+    }
+  });
+}
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && catalogModal && catalogModal.classList.contains('is-open')) {
+    closeCatalogModal();
+  }
+});
 
 function initFirebase() {
   const config = window.firebaseConfig || {};
@@ -170,11 +297,12 @@ async function fetchReport() {
     const order = doc.data();
     const items = order.items || [];
     const customerOrder = {
+      id: doc.id,
       name: order.name || '未填写姓名',
-      phone: order.phone || '',
       total: Number(order.total || 0),
       note: order.notes || '',
       items: items.map((item) => ({
+        id: item.id,
         name: item.name,
         quantity: Number(item.quantity || 0)
       }))
@@ -197,6 +325,8 @@ async function fetchReport() {
 }
 
 function renderReport(report) {
+  reportOrders = report.orders || [];
+
   orderCountEl.textContent = String(report.totalOrders || 0);
   itemCountEl.textContent = String(report.totalItems || 0);
   revenueTotalEl.textContent = formatCurrency(report.totalRevenue || 0);
@@ -229,7 +359,7 @@ function renderReport(report) {
   ordersEl.innerHTML = report.orders
     .map(
       (order) => `
-        <div class="report-order">
+        <div class="report-order" data-order-id="${order.id}">
           <div class="report-order-header">
             <span>${order.name}</span>
             <span>${formatCurrency(order.total)}</span>
@@ -240,10 +370,19 @@ function renderReport(report) {
               .join('')}
           </ul>
           ${order.note ? `<div class="report-order-note">备注：${order.note}</div>` : ''}
+          <div class="report-order-actions">
+            <button class="secondary-btn update-order-btn" type="button" data-order-id="${order.id}">更新订单</button>
+          </div>
         </div>
       `
     )
     .join('');
+
+  ordersEl.querySelectorAll('.update-order-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      openCatalogModal(button.dataset.orderId);
+    });
+  });
 }
 
 signupForm.addEventListener('submit', async (event) => {
@@ -256,11 +395,10 @@ signupForm.addEventListener('submit', async (event) => {
 
   const formData = new FormData(signupForm);
   const name = String(formData.get('name') || '').trim();
-  const phone = String(formData.get('phone') || '').trim();
   const notes = String(formData.get('notes') || '').trim();
 
-  if (!name || !phone) {
-    showStatus('姓名和电话为必填项。', 'error');
+  if (!name) {
+    showStatus('姓名为必填项。', 'error');
     return;
   }
 
@@ -285,7 +423,6 @@ signupForm.addEventListener('submit', async (event) => {
   try {
     await db.collection('tuangou').add({
       name,
-      phone,
       notes,
       items,
       total,
