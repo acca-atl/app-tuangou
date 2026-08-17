@@ -20,7 +20,16 @@
           </div>
           <div id="catalog" class="catalog"></div>
         </section>
-
+<div class="order-summary-box">
+              <div class="summary-row">
+                <span>已选件数</span>
+                <strong id="selected-count">0</strong>
+              </div>
+              <div class="summary-row total-row">
+                <span>总金额</span>
+                <strong id="total-price">$0</strong>
+              </div>
+            </div>
         <aside class="panel">
           <div class="panel-header">
             <h2>报名信息</h2>
@@ -42,16 +51,7 @@
               <textarea name="notes" rows="4" placeholder="例如：送货时间、特别要求等"></textarea>
             </label>
 
-            <div class="order-summary-box">
-              <div class="summary-row">
-                <span>已选件数</span>
-                <strong id="selected-count">0</strong>
-              </div>
-              <div class="summary-row total-row">
-                <span>总金额</span>
-                <strong id="total-price">$0</strong>
-              </div>
-            </div>
+            
 
             <button class="primary-btn" type="submit">提交报名</button>
           </form>
