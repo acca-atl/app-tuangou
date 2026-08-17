@@ -312,7 +312,7 @@ textarea {
   border-radius: 12px;
   padding: 16px;
   display: grid;
-  gap: 8px;
+  gap: 1px;
 }
 
 .stat-card span {
@@ -325,7 +325,6 @@ textarea {
 
 .report-items {
   display: grid;
-  gap: 10px;
 }
 
 .report-item {
@@ -335,7 +334,6 @@ textarea {
   gap: 12px;
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 10px;
   padding: 12px 14px;
 }
 
@@ -466,7 +464,7 @@ textarea {
   }
 
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
   }
 
   .stat-card {
@@ -478,7 +476,7 @@ textarea {
   }
 
   .report-item {
-    padding: 10px 12px;
+    padding: 6px 12px;
     font-size: 0.9rem;
   }
 

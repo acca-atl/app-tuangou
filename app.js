@@ -290,7 +290,7 @@ async function fetchReport() {
   let totalRevenue = 0;
 
   snapshot.forEach((doc) => {
-    if (doc.id === 'catalog') {
+    if (doc.id === 'catalog' || doc.id === 'liujie') {
       return;
     }
 
