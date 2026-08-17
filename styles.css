@@ -132,6 +132,13 @@ h1 {
   padding: 8px 12px;
 }
 
+#open-catalog-btn
+{
+  background-color: #39b021;
+  color: white;
+  height: 50px;
+}
+
 .catalog {
   display: grid;
   gap: 12px;

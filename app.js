@@ -364,7 +364,7 @@ function renderReport(report) {
           <div class="report-order-header">
             <span>${order.name}</span>
             <span>${formatCurrency(order.total)}</span>
-          </div>
+          <button class="secondary-btn update-order-btn" type="button" data-order-id="${order.id}">更新订单</button></div>
           <ul class="report-order-items">
             ${order.items
               .map((item) => `<li>${item.name} × ${item.quantity}</li>`)
@@ -372,7 +372,7 @@ function renderReport(report) {
           </ul>
           ${order.note ? `<div class="report-order-note">备注：${order.note}</div>` : ''}
           <div class="report-order-actions">
-            <button class="secondary-btn update-order-btn" type="button" data-order-id="${order.id}">更新订单</button>
+            
           </div>
         </div>
       `
