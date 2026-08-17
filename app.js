@@ -371,9 +371,6 @@ function renderReport(report) {
               .join('')}
           </ul>
           ${order.note ? `<div class="report-order-note">备注：${order.note}</div>` : ''}
-          <div class="report-order-actions">
-            
-          </div>
         </div>
       `
     )
