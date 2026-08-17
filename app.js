@@ -119,13 +119,15 @@ async function fetchReport() {
       totalOrders: 0,
       totalItems: 0,
       totalRevenue: 0,
-      catalogSummary: []
+      catalogSummary: [],
+      orders: []
     };
   }
 
   const snapshot = await db.collection('tuangou').get();
 
   const summaryMap = new Map();
+  const orders = [];
   let totalOrders = 0;
   let totalItems = 0;
   let totalRevenue = 0;
@@ -134,6 +136,17 @@ async function fetchReport() {
     totalOrders += 1;
     const order = doc.data();
     const items = order.items || [];
+    const customerOrder = {
+      name: order.name || '未填写姓名',
+      phone: order.phone || '',
+      total: Number(order.total || 0),
+      note: order.notes || '',
+      items: items.map((item) => ({
+        name: item.name,
+        quantity: Number(item.quantity || 0)
+      }))
+    };
+    orders.push(customerOrder);
 
     items.forEach((item) => {
       const key = item.id;
@@ -147,7 +160,7 @@ async function fetchReport() {
   });
 
   const catalogSummary = [...summaryMap.values()].sort((a, b) => b.quantity - a.quantity);
-  return { totalOrders, totalItems, totalRevenue, catalogSummary };
+  return { totalOrders, totalItems, totalRevenue, catalogSummary, orders };
 }
 
 function renderReport(report) {
@@ -157,15 +170,43 @@ function renderReport(report) {
 
   if (!report.catalogSummary || !report.catalogSummary.length) {
     reportItemsEl.innerHTML = '<div class="report-item"><span>暂无订单</span></div>';
+  } else {
+    reportItemsEl.innerHTML = report.catalogSummary
+      .map(
+        (item) => `
+          <div class="report-item">
+            <span>${item.name}</span>
+            <strong>${item.quantity} 份 / ${formatCurrency(item.revenue)}</strong>
+          </div>
+        `
+      )
+      .join('');
+  }
+
+  const ordersEl = document.querySelector('#report-orders');
+  if (!ordersEl) {
     return;
   }
 
-  reportItemsEl.innerHTML = report.catalogSummary
+  if (!report.orders || !report.orders.length) {
+    ordersEl.innerHTML = '<div class="report-order"><div>暂无报名名单</div></div>';
+    return;
+  }
+
+  ordersEl.innerHTML = report.orders
     .map(
-      (item) => `
-        <div class="report-item">
-          <span>${item.name}</span>
-          <strong>${item.quantity} 份 / ${formatCurrency(item.revenue)}</strong>
+      (order) => `
+        <div class="report-order">
+          <div class="report-order-header">
+            <span>${order.name}</span>
+            <span>${formatCurrency(order.total)}</span>
+          </div>
+          <ul class="report-order-items">
+            ${order.items
+              .map((item) => `<li>${item.name} × ${item.quantity}</li>`)
+              .join('')}
+          </ul>
+          ${order.note ? `<div class="report-order-note">备注：${order.note}</div>` : ''}
         </div>
       `
     )

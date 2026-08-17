@@ -260,6 +260,41 @@ textarea {
   padding: 12px 14px;
 }
 
+.report-orders-wrap {
+  margin-top: 20px;
+}
+
+.report-orders-wrap h3 {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+}
+
+.report-orders {
+  display: grid;
+  gap: 10px;
+}
+
+.report-order {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.report-order-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.report-order-items {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
 .status-message {
   border-radius: 10px;
   padding: 12px 14px;
