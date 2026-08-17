@@ -114,14 +114,15 @@ function renderCatalog() {
   catalogEl.innerHTML = catalog
     .map((item) => {
       const qty = selection.get(item.id) || 0;
+      const isSelected = qty > 0;
       return `
-        <div class="catalog-item" data-id="${item.id}">
+        <div class="catalog-item ${isSelected ? 'selected' : ''}" data-id="${item.id}">
           <div class="catalog-item-main">
             <span class="catalog-item-name">${item.name}</span>
             <span class="catalog-item-unit">${item.unit}</span>
           </div>
           <div class="catalog-item-price">${formatCurrency(item.price)}</div>
-          <div class="stepper" aria-label="Select quantity for ${item.name}">
+          <div class="stepper ${isSelected ? 'selected-stepper' : ''}" aria-label="Select quantity for ${item.name}">
             <button type="button" data-action="decrease" data-id="${item.id}">−</button>
             <span>${qty}</span>
             <button type="button" data-action="increase" data-id="${item.id}">+</button>
