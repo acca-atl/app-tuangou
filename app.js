@@ -1,4 +1,4 @@
-const catalog = [
+const DEFAULT_CATALOG = [
   { id: 'tianjin-baozi', name: '天津包子', unit: '12个/盒', price: 18 },
   { id: 'cai-rou-baozi', name: '菜肉包子', unit: '12个/盒', price: 18 },
   { id: 'jiu-cai-he-zi', name: '韭菜盒子', unit: '4个/盒', price: 18 },
@@ -15,6 +15,8 @@ const catalog = [
   { id: 'xian-xia-hun-tun', name: '鲜虾馄饨', unit: '100粒/袋', price: 35 },
   { id: 'ji-cai-zhu-rou-hun-tun', name: '荠菜猪肉馄饨', unit: '100粒', price: 32 }
 ];
+
+let catalog = [...DEFAULT_CATALOG];
 
 const selection = new Map();
 const catalogEl = document.querySelector('#catalog');
@@ -113,6 +115,33 @@ function initFirebase() {
   return true;
 }
 
+async function ensureCatalogDocument() {
+  if (!firebaseReady || !db) {
+    return;
+  }
+
+  const catalogRef = db.collection('tuangou').doc('catalog');
+  const snapshot = await catalogRef.get();
+
+  if (!snapshot.exists) {
+    await catalogRef.set({
+      items: DEFAULT_CATALOG,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    catalog = [...DEFAULT_CATALOG];
+    return;
+  }
+
+  const data = snapshot.data() || {};
+  const items = Array.isArray(data.items)
+    ? data.items
+    : Array.isArray(data.catalog)
+      ? data.catalog
+      : DEFAULT_CATALOG;
+
+  catalog = items;
+}
+
 async function fetchReport() {
   if (!firebaseReady || !db) {
     return {
@@ -133,6 +162,10 @@ async function fetchReport() {
   let totalRevenue = 0;
 
   snapshot.forEach((doc) => {
+    if (doc.id === 'catalog') {
+      return;
+    }
+
     totalOrders += 1;
     const order = doc.data();
     const items = order.items || [];
@@ -284,6 +317,9 @@ refreshButton.addEventListener('click', async () => {
 
   const ready = initFirebase();
   if (ready) {
+    await ensureCatalogDocument();
+    renderCatalog();
+    updateSelectionSummary();
     const report = await fetchReport();
     renderReport(report);
   } else {
